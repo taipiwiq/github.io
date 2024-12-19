@@ -3,143 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>画像登録と文字入力（画像上に文字配置、タップで遷移）</title>
+    <title>lottery</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f4f4f4;
+        /* アニメーションのためのCSS */
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
         }
 
-        .image-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
-            width: 80%;
-            min-height: 200px;
-        }
-
-        .image-wrapper {
-            position: relative;
-            width: 300px;  /* 画像サイズを2.5倍にする (120px x 2.5) */
-            height: 300px; /* 画像サイズを2.5倍にする (120px x 2.5) */
-            margin-bottom: 20px;
-            cursor: pointer; /* クリック可能なポインターにする */
-        }
-
-        /* 画像 */
-        .image-wrapper img {
+        .lottery-image {
             width: 100%;
-            height: 100%;
-            object-fit: cover;  /* 画像をボックス内でトリミングせずに収める */
-            border-radius: 10px;
+            height: 680px;
+            display: none;
+            animation: fadeIn 1s forwards;
+            object-fit: contain; /* 画像が画面いっぱいに収まるように調整 */
         }
 
-        /* 文字入力フィールドを画像の上に配置 */
-        .text-input {
-            width: 80%;
-            background: rgba(255, 255, 255, 0.8);
-            border: none;
+        .keihin {
             text-align: center;
-            padding: 5px;
-            border-radius: 5px;
-            font-size: 14px;
-            position: absolute;
-            top: -30px; /* 画像の上に配置 */
-            left: 50%;
-            transform: translateX(-50%); /* 中央に配置 */
-            z-index: 1;
+            font-size: 2em;
+            margin-top: 20px;
         }
 
-        .plus-button {
-            width: 120px;
-            height: 120px;
-            border: 2px dashed #ccc;
-            border-radius: 10px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 36px;
-            color: #aaa;
-            cursor: pointer;
-            background-color: #fff;
-            position: relative;
+        .rule {
+            margin-top:100px;
+            text-align: center;
+            font-size: 70px;
         }
 
-        .plus-button input[type="file"] {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            cursor: pointer;
+        .box {
+            width: 1500px;
+            height: 650px;
+            border:solid 5px #000;
+            margin-top: 50px;
+            margin-left:175px;
+            font-size: 50px;
+            text-align: center;
+            
         }
+
     </style>
 </head>
 <body>
-    <div class="image-container" id="imageContainer">
-        <div class="plus-button">
-            <span>＋</span>
-            <input type="file" accept="image/*" id="fileInput" multiple>
-        </div>
+
+    <div class = "rule">～　ルール説明　～</div>
+    <div class = "box"><p id ="a">・これから宝くじの抽選を行います</p>
+                        <p id ="b">・受付でお渡しした宝くじを準備してください</p>
+                        <p id ="c">・当選者には豪華景品をプレゼントします！！</p>
+    </div>
+
+
+    <!-- 景品紹介 -->
+    <h1 class="keihin">景品紹介</h1>
+    <img class="lottery-image" id="prize1" src="LINE_ALBUM_930ピノ_241008_2.jpg" alt="景品1">
+    <img class="lottery-image" id="prize2" src="LINE_ALBUM_2024.10.07 くらら子_241008_1.jpg" alt="景品2">
+
+    <!-- 順次抽選 -->
+    <div id="lottery">
+        <img class="lottery-image" id="prize3" src="LINE_ALBUM_2024.9.29ピノ子_241110_1.jpg" alt="景品3">
+        <img class="lottery-image" id="prize4" src="LINE_ALBUM_2024.9.29ピノ子_241110_2.jpg" alt="景品4">
+        <img class="lottery-image" id="prize5" src="LINE_ALBUM_2024.10.06 くらら子_241110_3.jpg" alt="景品5">
     </div>
 
     <script>
-        const imageContainer = document.getElementById('imageContainer');
-        const fileInput = document.getElementById('fileInput');
 
-        // 画像が選択されたときの処理
-        fileInput.addEventListener('change', function(event) {
-            const files = event.target.files;
+var id = ['a','b','c']; //指定するidを全て配列で渡す
+var tx = [];
+var txCount = [];
+var txSp = 70; // テキストの表示速度
+var dly = 0; // 次の文章までの待ち時間
+var count = 0;
 
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                const reader = new FileReader();
+window.onload = function(){
+    kamikakushi();
+    countSet();
+    itimozi()
+}
 
-                reader.onload = function(e) {
-                    const imageWrapper = document.createElement('div');
-                    imageWrapper.classList.add('image-wrapper');
+function countSet(){ // 文字数カウントの初期設定
+    for(n=0;n<id.length;n++){
+        txCount[n] = 0;
+    }
+}
 
-                    // 画像を表示
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
 
-                    // 画像をクリックしたときに遷移するページのURLを設定
-                    //const pageLink = `https://www.example.com/page${i + 1}`; // 動的に遷移先URLを作成
-                    const pageLink = 'yearsSelect.html';
+function kamikakushi(){ // 要素を取得して非表示（opacity:0;）にする
+    for(i=0;i<id.length;i++){
+    id[i] = document.getElementById(id[i]);
+    tx[i] = id[i].firstChild.nodeValue; // 初期の文字列
+    id[i].innerHTML = '';
+  }
+}
 
-                    // 画像をクリックしたときにそのページに遷移するように設定
-                    img.addEventListener('click', function() {
-                        window.location.href = pageLink;  // 指定のページに遷移
-                    });
+function itimozi(){ //　一文字ずつ表示
+    id[count].innerHTML = tx[count].substr( 0, ++txCount[count] ); // テキストの指定した数の間の要素を表示
+  if(tx[count].length != txCount[count]){ // Count が初期の文字列の文字数と同じになるまでループ
+    setTimeout("itimozi()",txSp); // 次の文字へ進む
+  }else{
+  id[count].innerHTML = tx[count].substr( 0, ++txCount[count] ); // テキストの指定した数の間の要素を表示
+    count++; // 次の段落に進む為のカウントアップ
+    if(count != id.length){ // id数が最後なら終了
+    setTimeout("itimozi()",dly); // 次の段落へ進む
+    }
+  }
+}
 
-                    // 画像の上に文字入力フィールドを配置
-                    const textInput = document.createElement('input');
-                    textInput.classList.add('text-input');
-                    textInput.placeholder = 'ここに文字を入力';
+        // 5秒ごとに順次抽選を表示
+        let currentPrize = 0;
+        const prizes = document.querySelectorAll('.lottery-image');
+        const totalPrizes = prizes.length;
 
-                    // ユーザーが入力した文字を反映
-                    textInput.addEventListener('input', function() {
-                        console.log(textInput.value); // 入力内容をコンソールに表示（デバッグ用）
-                    });
+        // 最初に最初の画像を表示
+        prizes[currentPrize].style.display = 'block';
 
-                    // 画像と文字入力フィールドを追加
-                    imageWrapper.appendChild(img);
-                    imageWrapper.appendChild(textInput);
+        // 5秒ごとに次の画像を表示
+        function showNextPrize() {
+            prizes[currentPrize].style.display = 'none';  // 現在の画像を非表示に
+            currentPrize = (currentPrize + 1) % totalPrizes;  // 次の画像を表示するためのインデックス
+            prizes[currentPrize].style.display = 'block';  // 次の画像を表示
+        }
 
-                    // 画像コンテナに追加
-                    imageContainer.insertBefore(imageWrapper, fileInput.parentElement);
-                };
-
-                reader.readAsDataURL(file);
-            }
-        });
+        // 5秒ごとに順次表示
+        setInterval(showNextPrize, 5000);
     </script>
 </body>
 </html>
